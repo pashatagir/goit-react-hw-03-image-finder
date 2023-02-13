@@ -1,16 +1,58 @@
-export const App = () => {
-  return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontSize: 40,
-        color: '#010101'
-      }}
-    >
-      React homework template
-    </div>
-  );
-};
+import { Component } from 'react';
+import { getImages } from './services/imageAPI';
+import Searchbar from './Searchbar';
+import ImageGallery from './ImageGallery';
+import Button from './Button';
+export class App extends Component {
+  state = {
+    query: '',
+    images: [],
+    page: 1,
+    isEmpty: false,
+    showBtn: false,
+  };
+
+  async componentDidUpdate(_, prevState) {
+    const { query, page } = this.state;
+    if (query !== prevState.query || page !== prevState.page) {
+      try {
+        const { hits, totalHits } = await getImages(query, page);
+        console.log(hits);
+        if (!hits?.length) {
+          this.setState({ isEmpty: true });
+          return;
+        }
+        this.setState(prevState => ({
+          images: prevState.images.concat(hits),
+          showBtn: page < Math.ceil(totalHits / 12),
+        }));
+      } catch (error) {}
+    }
+  }
+
+  handleFormSubmit = query => {
+    this.setState({ query, page: 1, images: [] });
+  };
+
+  onLoadMore = () => {
+    this.setState(prevState => ({ page: prevState.page + 1 }));
+  };
+
+  render() {
+    const { images, isEmpty, query, showBtn } = this.state;
+    return (
+      <div>
+        <Searchbar onSubmit={this.handleFormSubmit} />
+        <ImageGallery images={images} />
+        {showBtn && <Button onClick={this.onLoadMore} />}
+
+        {isEmpty && (
+          <h2>
+            There are no pictures with the name {query} in our database, try
+            another request!
+          </h2>
+        )}
+      </div>
+    );
+  }
+}
