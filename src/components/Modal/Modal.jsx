@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 const modalRoot = document.querySelector('#modal-root');
 class Modal extends Component {
   static propTypes = {
-    id: PropTypes.number,
+    onClose: PropTypes.func,
   };
   componentDidMount() {
     window.addEventListener('keydown', this.handelClick);
